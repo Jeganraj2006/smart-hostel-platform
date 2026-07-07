@@ -12,6 +12,7 @@ const roleDashboards = {
   STAFF: '/staff',
   PARENT: '/parent',
   SUPER_ADMIN: '/admin',
+  SECURITY_GUARD: '/security',
 };
 
 export default function Login() {

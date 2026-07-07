@@ -4,12 +4,15 @@ import com.hostel.hostel_backend.models.Complaint;
 import com.hostel.hostel_backend.models.User;
 import com.hostel.hostel_backend.repositories.ComplaintRepository;
 import com.hostel.hostel_backend.repositories.UserRepository;
+import com.hostel.hostel_backend.exceptions.ResourceNotFoundException;
+import com.hostel.hostel_backend.services.AuditService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -23,35 +26,31 @@ public class ComplaintController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AuditService auditService;
+
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext()
                 .getAuthentication().getName();
-        return userRepository.findByEmail(email).orElseThrow();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
 
     @PostMapping
     public ResponseEntity<?> raise(@RequestBody Complaint request) {
-        try {
-            User student = getCurrentUser();
-            request.setStudentId(student.getId());
-            request.setStudentName(student.getName());
-            request.setStatus("OPEN");
-            return ResponseEntity.ok(complaintRepository.save(request));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        User student = getCurrentUser();
+        request.setStudentId(student.getId());
+        request.setStudentName(student.getName());
+        request.setStatus("OPEN");
+        return ResponseEntity.ok(complaintRepository.save(request));
     }
 
     @GetMapping("/my")
     public ResponseEntity<?> getMyComplaints() {
-        try {
-            User student = getCurrentUser();
-            return ResponseEntity.ok(
-                    complaintRepository.findByStudentId(student.getId())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        User student = getCurrentUser();
+        return ResponseEntity.ok(
+                complaintRepository.findByStudentId(student.getId())
+        );
     }
 
     @GetMapping
@@ -62,26 +61,35 @@ public class ComplaintController {
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateStatus(@PathVariable String id,
                                           @RequestBody Map<String, String> body) {
-        try {
-            Complaint c = complaintRepository.findById(id).orElseThrow();
-            c.setStatus(body.get("status"));
-            if (body.get("status").equals("RESOLVED"))
-                c.setResolvedAt(LocalDateTime.now());
-            return ResponseEntity.ok(complaintRepository.save(c));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        Complaint c = complaintRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Complaint not found with id: " + id));
+        c.setStatus(body.get("status"));
+        if (body.get("status").equals("RESOLVED"))
+            c.setResolvedAt(LocalDateTime.now());
+        Complaint saved = complaintRepository.save(c);
+
+        // Audit Logging
+        User actor = getCurrentUser();
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("status", body.get("status"));
+        auditService.log(
+            actor.getId(),
+            actor.getRole(),
+            "UPDATE_STATUS",
+            "COMPLAINT",
+            id,
+            metadata
+        );
+
+        return ResponseEntity.ok(saved);
     }
 
     @PutMapping("/{id}/rate")
     public ResponseEntity<?> rate(@PathVariable String id,
                                   @RequestBody Map<String, Integer> body) {
-        try {
-            Complaint c = complaintRepository.findById(id).orElseThrow();
-            c.setRating(body.get("rating"));
-            return ResponseEntity.ok(complaintRepository.save(c));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        Complaint c = complaintRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Complaint not found with id: " + id));
+        c.setRating(body.get("rating"));
+        return ResponseEntity.ok(complaintRepository.save(c));
     }
 }

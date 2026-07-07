@@ -1,0 +1,21 @@
+
+The following files have been resolved:
+   org.springframework.boot:spring-boot-starter-web:jar:3.3.5:compile[36m -- module spring.boot.starter.web[0;1m [auto][m
+   org.springframework.boot:spring-boot-starter-security:jar:3.3.5:compile[36m -- module spring.boot.starter.security[0;1m [auto][m
+   org.springframework.boot:spring-boot-starter-data-mongodb:jar:3.3.5:compile[36m -- module spring.boot.starter.data.mongodb[0;1m [auto][m
+   org.springframework.boot:spring-boot-starter-data-redis:jar:3.3.5:compile[36m -- module spring.boot.starter.data.redis[0;1m [auto][m
+   org.springframework.boot:spring-boot-starter-websocket:jar:3.3.5:compile[36m -- module spring.boot.starter.websocket[0;1m [auto][m
+   org.springframework.boot:spring-boot-starter-mail:jar:3.3.5:compile[36m -- module spring.boot.starter.mail[0;1m [auto][m
+   org.springframework.boot:spring-boot-starter-validation:jar:3.3.5:compile[36m -- module spring.boot.starter.validation[0;1m [auto][m
+   org.springframework.boot:spring-boot-devtools:jar:3.3.5:runtime (optional)[36m -- module spring.boot.devtools[0;1m [auto][m
+   org.projectlombok:lombok:jar:1.18.34:compile (optional)[36m -- module lombok[m
+   io.jsonwebtoken:jjwt-api:jar:0.12.3:compile[36m -- module jjwt.api[0;1;33m (auto)[m
+   io.jsonwebtoken:jjwt-impl:jar:0.12.3:compile[36m -- module jjwt.impl[0;1;33m (auto)[m
+   io.jsonwebtoken:jjwt-jackson:jar:0.12.3:compile[36m -- module jjwt.jackson[0;1;33m (auto)[m
+   com.google.zxing:core:jar:3.5.2:compile[36m -- module com.google.zxing[0;1m [auto][m
+   com.google.zxing:javase:jar:3.5.2:compile[36m -- module com.google.zxing.javase[0;1m [auto][m
+   com.cloudinary:cloudinary-http44:jar:1.36.0:compile[36m -- module cloudinary.http44[0;1;33m (auto)[m
+   org.apache.opennlp:opennlp-tools:jar:2.5.9:compile[36m -- module org.apache.opennlp.tools[0;1m [auto][m
+   com.bucket4j:bucket4j-core:jar:8.7.0:compile[36m -- module io.github.bucket4j.core[0;1m [auto][m
+   org.springframework.boot:spring-boot-starter-test:jar:3.3.5:test[36m -- module spring.boot.starter.test[0;1m [auto][m
+

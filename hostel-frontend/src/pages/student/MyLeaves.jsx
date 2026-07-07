@@ -126,6 +126,22 @@ export default function MyLeaves() {
                                     )}
                                 </div>
 
+                                {leave.qrCode && (
+                                    <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '12px', background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
+                                        <img 
+                                            src={`data:image/png;base64,${leave.qrCode}`} 
+                                            alt="Gatepass QR" 
+                                            style={{ width: '100px', height: '100px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '4px' }} 
+                                        />
+                                        <div>
+                                            <p style={{ fontSize: '13px', fontWeight: '600', color: '#0f172a' }}>🎟️ Gatepass QR Code</p>
+                                            <p style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', lineHeight: '1.4' }}>
+                                                Scan this QR code at the security gate when leaving or entering the hostel campus.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Approval chain progress */}
                                 {leave.approvalSteps && (
                                     <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #f8fafc' }}>

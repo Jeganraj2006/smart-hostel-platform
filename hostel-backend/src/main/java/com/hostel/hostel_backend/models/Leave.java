@@ -37,6 +37,8 @@ public class Leave {
     private String emergencyReason;
     private String overriddenBy;
 
+    private String qrCode;
+
     private LocalDateTime appliedAt = LocalDateTime.now();
     private LocalDateTime updatedAt;
 

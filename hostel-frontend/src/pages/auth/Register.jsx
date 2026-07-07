@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { authService } from '../../services/authService';
 
-const roles = ['STUDENT', 'WARDEN', 'HOD', 'STAFF', 'PARENT'];
+const roles = ['STUDENT', 'WARDEN', 'HOD', 'STAFF', 'PARENT', 'SECURITY_GUARD'];
 
 export default function Register() {
     const [loading, setLoading] = useState(false);

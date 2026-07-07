@@ -5,13 +5,16 @@ import com.hostel.hostel_backend.models.Leave;
 import com.hostel.hostel_backend.models.User;
 import com.hostel.hostel_backend.repositories.LeaveRepository;
 import com.hostel.hostel_backend.repositories.UserRepository;
+import com.hostel.hostel_backend.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class LeaveService {
@@ -22,12 +25,18 @@ public class LeaveService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AuditService auditService;
+
+    @Autowired
+    private QrCodeService qrCodeService;
+
     // Get current logged-in user
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext()
                 .getAuthentication().getName();
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     // Get approval chain based on leave type
@@ -93,7 +102,7 @@ public class LeaveService {
         User approver = getCurrentUser();
 
         Leave leave = leaveRepository.findById(leaveId)
-                .orElseThrow(() -> new RuntimeException("Leave not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Leave not found"));
 
         List<Leave.ApprovalStep> steps = leave.getApprovalSteps();
         Leave.ApprovalStep currentStep = steps.get(leave.getCurrentLevel());
@@ -109,6 +118,12 @@ public class LeaveService {
         if (nextLevel >= steps.size()) {
             // All levels approved
             leave.setStatus("APPROVED");
+            try {
+                String qr = qrCodeService.generateQrBase64(leave.getId(), leave.getToDate());
+                leave.setQrCode(qr);
+            } catch (Exception e) {
+                // Log and proceed
+            }
         } else {
             // Move to next level
             leave.setCurrentLevel(nextLevel);
@@ -116,18 +131,48 @@ public class LeaveService {
         }
 
         leave.setUpdatedAt(LocalDateTime.now());
-        return leaveRepository.save(leave);
+        Leave savedLeave = leaveRepository.save(leave);
+
+        // Audit Logging
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("level", String.valueOf(level));
+        metadata.put("status", savedLeave.getStatus());
+        auditService.log(
+            approver.getId(),
+            approver.getRole(),
+            "APPROVE",
+            "LEAVE",
+            leaveId,
+            metadata
+        );
+
+        return savedLeave;
     }
 
     // Reject leave
     public Leave rejectLeave(String leaveId, String reason) {
         Leave leave = leaveRepository.findById(leaveId)
-                .orElseThrow(() -> new RuntimeException("Leave not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Leave not found"));
 
         leave.setStatus("REJECTED");
         leave.setRejectionReason(reason);
         leave.setUpdatedAt(LocalDateTime.now());
-        return leaveRepository.save(leave);
+        Leave savedLeave = leaveRepository.save(leave);
+
+        // Audit Logging
+        User approver = getCurrentUser();
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("reason", reason);
+        auditService.log(
+            approver.getId(),
+            approver.getRole(),
+            "REJECT",
+            "LEAVE",
+            leaveId,
+            metadata
+        );
+
+        return savedLeave;
     }
 
     // Emergency override by warden
@@ -135,7 +180,7 @@ public class LeaveService {
         User warden = getCurrentUser();
 
         Leave leave = leaveRepository.findById(leaveId)
-                .orElseThrow(() -> new RuntimeException("Leave not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Leave not found"));
 
         leave.setStatus("APPROVED");
         leave.setEmergencyOverride(true);
@@ -146,13 +191,34 @@ public class LeaveService {
         // Mark all steps as approved
         leave.getApprovalSteps().forEach(s -> s.setApproved(true));
 
-        return leaveRepository.save(leave);
+        try {
+            String qr = qrCodeService.generateQrBase64(leave.getId(), leave.getToDate());
+            leave.setQrCode(qr);
+        } catch (Exception e) {
+            // Log and proceed
+        }
+
+        Leave savedLeave = leaveRepository.save(leave);
+
+        // Audit Logging
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("reason", reason);
+        auditService.log(
+            warden.getId(),
+            warden.getRole(),
+            "EMERGENCY_OVERRIDE",
+            "LEAVE",
+            leaveId,
+            metadata
+        );
+
+        return savedLeave;
     }
 
     // Send reminder
     public void sendReminder(String leaveId) {
         Leave leave = leaveRepository.findById(leaveId)
-                .orElseThrow(() -> new RuntimeException("Leave not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Leave not found"));
 
         leave.setReminderCount(leave.getReminderCount() + 1);
         leaveRepository.save(leave);

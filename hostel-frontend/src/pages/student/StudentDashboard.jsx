@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { leaveService } from '../../services/leaveService';
 import { feeService } from '../../services/feeService';
 import { complaintService } from '../../services/complaintService';
+import { studentService } from '../../services/studentService';
 import useAuthStore from '../../store/authStore';
 
 const StatCard = ({ label, value, color, bg, to, icon }) => (
@@ -35,6 +37,19 @@ const StatCard = ({ label, value, color, bg, to, icon }) => (
 
 export default function StudentDashboard() {
     const { user } = useAuthStore();
+    const navigate = useNavigate();
+
+    const { data: prefData } = useQuery({
+        queryKey: ['studentPreferences'],
+        queryFn: () => studentService.getPreferences().then(r => r.data),
+        retry: false,
+    });
+
+    useEffect(() => {
+        if (prefData && prefData.hasPreferences === false) {
+            navigate('/student/onboarding', { replace: true });
+        }
+    }, [prefData, navigate]);
 
     const { data: leaves = [] } = useQuery({
         queryKey: ['myLeaves'],

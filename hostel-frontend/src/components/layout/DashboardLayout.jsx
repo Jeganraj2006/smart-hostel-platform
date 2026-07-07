@@ -16,6 +16,7 @@ const navItems = {
         { label: '👤 Registrations', path: '/warden/registrations' },
         { label: '🏨 Room Map', path: '/warden/rooms' },
         { label: '📊 Analytics', path: '/warden/analytics' },
+        { label: '🔧 Allocations', path: '/admin/allocations' },
     ],
     HOD: [
         { label: '🏠 Dashboard', path: '/hod' },
@@ -35,6 +36,11 @@ const navItems = {
         { label: '👥 Role Manager', path: '/admin/roles' },
         { label: '🔗 Chain Config', path: '/admin/chains' },
         { label: '📜 Audit Logs', path: '/admin/audit' },
+        { label: '🔧 Allocations', path: '/admin/allocations' },
+    ],
+    SECURITY_GUARD: [
+        { label: '🏠 Dashboard', path: '/security' },
+        { label: '📷 Gate Scanner', path: '/security/scanner' },
     ],
 };
 
@@ -58,6 +64,7 @@ export default function DashboardLayout({ children }) {
         STAFF: 'bg-amber-100 text-amber-700',
         PARENT: 'bg-pink-100 text-pink-700',
         SUPER_ADMIN: 'bg-red-100 text-red-700',
+        SECURITY_GUARD: 'bg-teal-100 text-teal-700',
     };
 
     return (

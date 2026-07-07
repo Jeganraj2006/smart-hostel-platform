@@ -30,4 +30,5 @@ public class User {
     private String rejectionReason;
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime approvedAt;
+    private RoommatePreferences roommatePreferences;
 }
