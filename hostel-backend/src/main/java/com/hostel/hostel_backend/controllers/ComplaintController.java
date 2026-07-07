@@ -29,6 +29,9 @@ public class ComplaintController {
     @Autowired
     private AuditService auditService;
 
+    @Autowired
+    private com.hostel.hostel_backend.services.NlpTriageService nlpTriageService;
+
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext()
                 .getAuthentication().getName();
@@ -42,6 +45,15 @@ public class ComplaintController {
         request.setStudentId(student.getId());
         request.setStudentName(student.getName());
         request.setStatus("OPEN");
+
+        // Auto-triage category and priority if blank
+        if (request.getCategory() == null || request.getCategory().trim().isEmpty()) {
+            request.setCategory(nlpTriageService.triageCategory(request.getDescription()));
+        }
+        if (request.getPriority() == null || request.getPriority().trim().isEmpty()) {
+            request.setPriority(nlpTriageService.triagePriority(request.getDescription()));
+        }
+
         return ResponseEntity.ok(complaintRepository.save(request));
     }
 

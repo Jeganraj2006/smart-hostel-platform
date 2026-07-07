@@ -57,6 +57,9 @@ public class ComplaintControllerTest {
     @MockBean
     private AuditService auditService;
 
+    @MockBean
+    private com.hostel.hostel_backend.services.NlpTriageService nlpTriageService;
+
     @Test
     @WithMockUser(username = "student@example.com")
     public void testCreateComplaintSuccess() throws Exception {
