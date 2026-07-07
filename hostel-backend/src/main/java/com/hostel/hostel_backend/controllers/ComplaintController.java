@@ -143,4 +143,13 @@ public class ComplaintController {
     public ResponseEntity<?> getPreventiveFlags() {
         return ResponseEntity.ok(preventiveFlagRepository.findByResolved(false));
     }
+
+    @PutMapping("/preventive-flags/{id}/resolve")
+    @PreAuthorize("hasAnyRole('WARDEN', 'SUPER_ADMIN')")
+    public ResponseEntity<?> resolvePreventiveFlag(@PathVariable String id) {
+        com.hostel.hostel_backend.models.PreventiveFlag flag = preventiveFlagRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Flag not found with id: " + id));
+        flag.setResolved(true);
+        return ResponseEntity.ok(preventiveFlagRepository.save(flag));
+    }
 }

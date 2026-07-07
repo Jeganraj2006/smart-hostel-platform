@@ -20,6 +20,7 @@ import MyFees from './pages/student/MyFees';
 
 import WardenDashboard from './pages/warden/WardenDashboard';
 import PendingLeaves from './pages/warden/PendingLeaves';
+import PreventiveMaintenance from './pages/warden/PreventiveMaintenance';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import RoomAllocation from './pages/admin/RoomAllocation';
@@ -78,6 +79,11 @@ export default function App() {
                     <Route path="/warden/leaves" element={
                         <ProtectedRoute allowedRoles={['WARDEN']}>
                             <PendingLeaves />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/warden/preventive-maintenance" element={
+                        <ProtectedRoute allowedRoles={['WARDEN', 'SUPER_ADMIN']}>
+                            <PreventiveMaintenance />
                         </ProtectedRoute>
                     } />
 

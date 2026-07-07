@@ -17,6 +17,7 @@ const navItems = {
         { label: '🏨 Room Map', path: '/warden/rooms' },
         { label: '📊 Analytics', path: '/warden/analytics' },
         { label: '🔧 Allocations', path: '/admin/allocations' },
+        { label: '🛠️ Maintenance', path: '/warden/preventive-maintenance' },
     ],
     HOD: [
         { label: '🏠 Dashboard', path: '/hod' },
@@ -37,6 +38,7 @@ const navItems = {
         { label: '🔗 Chain Config', path: '/admin/chains' },
         { label: '📜 Audit Logs', path: '/admin/audit' },
         { label: '🔧 Allocations', path: '/admin/allocations' },
+        { label: '🛠️ Maintenance', path: '/warden/preventive-maintenance' },
     ],
     SECURITY_GUARD: [
         { label: '🏠 Dashboard', path: '/security' },
