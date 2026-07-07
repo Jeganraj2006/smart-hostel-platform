@@ -58,6 +58,15 @@ public class ComplaintControllerTest {
     private AuditService auditService;
 
     @MockBean
+    private com.hostel.hostel_backend.repositories.RoomRepository roomRepository;
+
+    @MockBean
+    private com.hostel.hostel_backend.repositories.PreventiveFlagRepository preventiveFlagRepository;
+
+    @MockBean
+    private com.hostel.hostel_backend.services.PreventiveMaintenanceService preventiveMaintenanceService;
+
+    @MockBean
     private com.hostel.hostel_backend.services.NlpTriageService nlpTriageService;
 
     @Test
