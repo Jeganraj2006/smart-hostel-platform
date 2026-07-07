@@ -21,6 +21,9 @@ import MyFees from './pages/student/MyFees';
 import WardenDashboard from './pages/warden/WardenDashboard';
 import PendingLeaves from './pages/warden/PendingLeaves';
 import PreventiveMaintenance from './pages/warden/PreventiveMaintenance';
+import FeeRiskDashboard from './pages/warden/FeeRiskDashboard';
+import VisitorLog from './pages/warden/VisitorLog';
+import EmergencyBroadcast from './pages/warden/EmergencyBroadcast';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import RoomAllocation from './pages/admin/RoomAllocation';
@@ -84,6 +87,21 @@ export default function App() {
                     <Route path="/warden/preventive-maintenance" element={
                         <ProtectedRoute allowedRoles={['WARDEN', 'SUPER_ADMIN']}>
                             <PreventiveMaintenance />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/warden/fee-risk" element={
+                        <ProtectedRoute allowedRoles={['WARDEN', 'SUPER_ADMIN']}>
+                            <FeeRiskDashboard />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/warden/visitors" element={
+                        <ProtectedRoute allowedRoles={['WARDEN', 'SECURITY_GUARD', 'SUPER_ADMIN']}>
+                            <VisitorLog />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/warden/broadcast" element={
+                        <ProtectedRoute allowedRoles={['WARDEN', 'SUPER_ADMIN']}>
+                            <EmergencyBroadcast />
                         </ProtectedRoute>
                     } />
 

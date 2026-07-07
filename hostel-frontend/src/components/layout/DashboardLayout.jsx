@@ -17,7 +17,10 @@ const navItems = {
         { label: '🏨 Room Map', path: '/warden/rooms' },
         { label: '📊 Analytics', path: '/warden/analytics' },
         { label: '🔧 Allocations', path: '/admin/allocations' },
+        { label: '💰 Fee Risk', path: '/warden/fee-risk' },
         { label: '🛠️ Maintenance', path: '/warden/preventive-maintenance' },
+        { label: '📷 Visitor Log', path: '/warden/visitors' },
+        { label: '🚨 Emergency', path: '/warden/broadcast' },
     ],
     HOD: [
         { label: '🏠 Dashboard', path: '/hod' },
@@ -38,11 +41,15 @@ const navItems = {
         { label: '🔗 Chain Config', path: '/admin/chains' },
         { label: '📜 Audit Logs', path: '/admin/audit' },
         { label: '🔧 Allocations', path: '/admin/allocations' },
+        { label: '💰 Fee Risk', path: '/warden/fee-risk' },
         { label: '🛠️ Maintenance', path: '/warden/preventive-maintenance' },
+        { label: '📷 Visitor Log', path: '/warden/visitors' },
+        { label: '🚨 Emergency', path: '/warden/broadcast' },
     ],
     SECURITY_GUARD: [
         { label: '🏠 Dashboard', path: '/security' },
         { label: '📷 Gate Scanner', path: '/security/scanner' },
+        { label: '📷 Visitor Log', path: '/warden/visitors' },
     ],
 };
 

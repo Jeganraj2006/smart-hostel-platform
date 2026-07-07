@@ -6,12 +6,17 @@ import com.hostel.hostel_backend.repositories.UserRepository;
 import com.hostel.hostel_backend.repositories.FeeRepository;
 import com.hostel.hostel_backend.exceptions.ResourceNotFoundException;
 import com.hostel.hostel_backend.services.AuditService;
+import com.hostel.hostel_backend.services.FeeRiskService;
+import com.hostel.hostel_backend.services.ReceiptService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +35,12 @@ public class FeeController {
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private ReceiptService receiptService;
+
+    @Autowired
+    private FeeRiskService feeRiskService;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext()
@@ -143,5 +154,85 @@ public class FeeController {
         );
 
         return ResponseEntity.ok(saved);
+    }
+
+    /**
+     * GET /api/fees/{id}/receipt
+     *
+     * Returns a PDF payment receipt for the given fee.
+     * Only accessible by the student who owns the fee, and only when status = PAID.
+     * WARDEN / ADMIN may also call this endpoint for any student's fee.
+     */
+    @GetMapping("/{id}/receipt")
+    public ResponseEntity<?> downloadReceipt(@PathVariable String id) {
+        User requester = getCurrentUser();
+
+        Fee fee = feeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Fee not found with id: " + id));
+
+        // Ownership check for STUDENT role
+        if ("STUDENT".equals(requester.getRole()) && !requester.getId().equals(fee.getStudentId())) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Access denied: you can only download your own receipt.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        }
+
+        // Receipt is only available for paid fees
+        if (!"PAID".equals(fee.getStatus())) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Receipt is only available for fees with status PAID.");
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
+        }
+
+        // Resolve the student user (may differ from requester when WARDEN downloads)
+        User student = userRepository.findById(fee.getStudentId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Student not found with id: " + fee.getStudentId()));
+
+        byte[] pdfBytes;
+        try {
+            pdfBytes = receiptService.generateReceiptPdf(fee, student);
+        } catch (IOException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to generate PDF receipt: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData(
+                "attachment",
+                "receipt-" + fee.getId() + ".pdf"
+        );
+        headers.setContentLength(pdfBytes.length);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
+    }
+
+    /**
+     * GET /api/fees/risk
+     *
+     * Returns risk assessments for all students with MEDIUM or HIGH payment risk,
+     * sorted highest-risk first (by riskPoints descending).
+     *
+     * Restricted to WARDEN and ADMIN roles.
+     *
+     * Risk tiers are computed by FeeRiskService.computeRiskScore() using:
+     *   - overdue fees × 3 points
+     *   - late-paid fees × 1 point
+     * HIGH  = overdue >= 2 or risk ratio >= 50%
+     * MEDIUM = overdue == 1 or risk ratio >= 20%
+     */
+    @GetMapping("/risk")
+    public ResponseEntity<?> getRiskReport() {
+        User requester = getCurrentUser();
+        if (!"WARDEN".equals(requester.getRole()) && !"SUPER_ADMIN".equals(requester.getRole())) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Access denied: only WARDEN or ADMIN may view the risk report.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        }
+        return ResponseEntity.ok(feeRiskService.getAllAtRiskStudents());
     }
 }

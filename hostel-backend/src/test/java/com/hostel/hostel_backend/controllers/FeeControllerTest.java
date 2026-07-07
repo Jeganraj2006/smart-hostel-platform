@@ -8,6 +8,8 @@ import com.hostel.hostel_backend.security.JwtAuthFilter;
 import com.hostel.hostel_backend.security.JwtTokenProvider;
 import com.hostel.hostel_backend.security.RateLimitFilter;
 import com.hostel.hostel_backend.services.AuditService;
+import com.hostel.hostel_backend.services.FeeRiskService;
+import com.hostel.hostel_backend.services.ReceiptService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,8 @@ public class FeeControllerTest {
     @MockBean private FeeRepository feeRepository;
     @MockBean private UserRepository userRepository;
     @MockBean private AuditService auditService;
+    @MockBean private ReceiptService receiptService;
+    @MockBean private FeeRiskService feeRiskService;
     @MockBean private JwtAuthFilter jwtAuthFilter;
     @MockBean private JwtTokenProvider jwtTokenProvider;
     @MockBean private RateLimitFilter rateLimitFilter;

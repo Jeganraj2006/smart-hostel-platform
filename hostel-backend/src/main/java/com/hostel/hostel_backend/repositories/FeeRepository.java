@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface FeeRepository extends MongoRepository<Fee, String> {
     List<Fee> findByStudentId(String studentId);
+    List<Fee> findByStudentIdAndStatus(String studentId, String status);
+    List<Fee> findByStatus(String status);
 }
