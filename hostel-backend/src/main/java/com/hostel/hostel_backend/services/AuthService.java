@@ -13,10 +13,14 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.concurrent.TimeUnit;
 
 @Service
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     @Autowired private UserRepository userRepository;
     @Autowired private PasswordEncoder passwordEncoder;
@@ -79,13 +83,18 @@ public class AuthService {
         userRepository.save(user);
         return "Registration request sent. Awaiting warden approval.";
     }
-
     // Login → only ACTIVE accounts
     public AuthResponse login(LoginRequest request) {
         String email = request.getEmail();
         String lockoutKey = "login:lockout:" + email;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(lockoutKey))) {
-            throw new BadRequestException("Account temporarily locked due to too many failed attempts. Please try again later.");
+        try {
+            if (Boolean.TRUE.equals(redisTemplate.hasKey(lockoutKey))) {
+                throw new BadRequestException("Account temporarily locked due to too many failed attempts. Please try again later.");
+            }
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("Redis unavailable, skipping lockout check");
         }
 
         User user = userRepository.findByEmail(email)
@@ -114,8 +123,12 @@ public class AuthService {
         }
 
         // Login success: reset attempts
-        redisTemplate.delete("login:attempts:" + email);
-        redisTemplate.delete(lockoutKey);
+        try {
+            redisTemplate.delete("login:attempts:" + email);
+            redisTemplate.delete(lockoutKey);
+        } catch (Exception e) {
+            log.warn("Redis unavailable, failed to reset login attempts");
+        }
 
         String token = jwtTokenProvider.generateAccessToken(
                 user.getEmail(), user.getRole()
@@ -132,25 +145,31 @@ public class AuthService {
         String attemptsKey = "login:attempts:" + email;
         String lockoutKey = "login:lockout:" + email;
 
-        String currentVal = redisTemplate.opsForValue().get(attemptsKey);
-        int attempts = 0;
-        if (currentVal != null) {
-            try {
-                attempts = Integer.parseInt(currentVal);
-            } catch (NumberFormatException e) {
-                // ignore
+        try {
+            String currentVal = redisTemplate.opsForValue().get(attemptsKey);
+            int attempts = 0;
+            if (currentVal != null) {
+                try {
+                    attempts = Integer.parseInt(currentVal);
+                } catch (NumberFormatException e) {
+                    // ignore
+                }
             }
-        }
 
-        attempts++;
-        if (attempts >= 5) {
-            // Lockout for 15 minutes
-            redisTemplate.opsForValue().set(lockoutKey, "locked", 15, TimeUnit.MINUTES);
-            redisTemplate.delete(attemptsKey);
-            throw new BadRequestException("Account temporarily locked due to too many failed attempts. Please try again later.");
-        } else {
-            // Save attempt count with 15 minutes TTL
-            redisTemplate.opsForValue().set(attemptsKey, String.valueOf(attempts), 15, TimeUnit.MINUTES);
+            attempts++;
+            if (attempts >= 5) {
+                // Lockout for 15 minutes
+                redisTemplate.opsForValue().set(lockoutKey, "locked", 15, TimeUnit.MINUTES);
+                redisTemplate.delete(attemptsKey);
+                throw new BadRequestException("Account temporarily locked due to too many failed attempts. Please try again later.");
+            } else {
+                // Save attempt count with 15 minutes TTL
+                redisTemplate.opsForValue().set(attemptsKey, String.valueOf(attempts), 15, TimeUnit.MINUTES);
+            }
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("Redis unavailable, failed to increment login attempts");
         }
     }
 }

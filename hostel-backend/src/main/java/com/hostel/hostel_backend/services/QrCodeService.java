@@ -31,7 +31,11 @@ public class QrCodeService {
             String redisKey = "leave:nonce:" + leaveId;
             long ttl = calculateTtlInSeconds(toDateStr);
 
-            redisTemplate.opsForValue().set(redisKey, nonce, ttl, TimeUnit.SECONDS);
+            try {
+                redisTemplate.opsForValue().set(redisKey, nonce, ttl, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                // Fallback silently if Redis is offline in local dev
+            }
 
             String qrContent = leaveId + ":" + nonce;
 
