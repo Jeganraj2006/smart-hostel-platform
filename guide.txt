@@ -1,0 +1,102 @@
+# Smart Hostel Platform - Runner & Credentials Guide
+
+Follow this guide to quickly start and run the application, configure initial administrative access, and login with test accounts.
+
+---
+
+## 1. Quick Start with Docker (Recommended)
+
+1. Make sure you have Docker and Docker Compose installed.
+2. From the project root folder (`e:\Hostel Management Software`), run:
+   ```bash
+   docker-compose up --build
+   ```
+3. Once running, access the portals at:
+   * **Frontend Application**: http://localhost:80
+   * **Backend REST API**: http://localhost:8080
+
+---
+
+## 2. Manual Startup
+
+### Step A: Databases
+Ensure MongoDB (port 27017) and Redis (port 6379) are active locally.
+
+### Step B: Run Backend
+1. Open a terminal in `hostel-backend`.
+2. Configure `.env` file from `.env.example`:
+   ```bash
+   cp .env.example .env
+   ```
+3. Load properties and run:
+   * **Windows PowerShell**:
+     ```powershell
+     Get-Content .env | Where-Object { $_ -and -not $_.StartsWith('#') } | ForEach-Object {
+         $name, $value = $_.Split('=', 2)
+         [System.Environment]::SetEnvironmentVariable($name.Trim(), $value.Trim())
+     }
+     mvn spring-boot:run
+     ```
+   * **macOS / Linux / Git Bash**:
+     ```bash
+     export $(grep -v '^#' .env | xargs)
+     mvn spring-boot:run
+     ```
+
+### Step C: Run Frontend
+1. Open a terminal in `hostel-frontend`.
+2. Install npm packages and start development server:
+   ```bash
+   npm install
+   npm run dev
+   ```
+3. Access at: http://localhost:5173
+
+---
+
+## 3. Initial Setup & Test Credentials
+
+The database does not contain pre-seeded users. To seed or log in, use the Initial Setup backdoor or the standard Registration Flow.
+
+### A. Initial Setup Backdoor (Warden / Admin Setup)
+Since registrations require Warden approval, you must create the first WARDEN or ADMIN account directly using the setup endpoint. This setup backdoor only works when the database is empty.
+
+Execute a POST request to `/api/setup/create-user`:
+
+* **Warden Account (Test Credentials)**:
+  * **Endpoint**: `POST http://localhost:8080/api/setup/create-user`
+  * **Headers**: `Content-Type: application/json`
+  * **Body**:
+    ```json
+    {
+      "name": "Warden Jegan",
+      "email": "warden@hostel.com",
+      "phone": "9876543210",
+      "password": "Password123",
+      "role": "WARDEN"
+    }
+    ```
+
+* **Admin Account (Test Credentials)**:
+  * **Endpoint**: `POST http://localhost:8080/api/setup/create-user`
+  * **Headers**: `Content-Type: application/json`
+  * **Body**:
+    ```json
+    {
+      "name": "System Admin",
+      "email": "admin@hostel.com",
+      "phone": "9999999999",
+      "password": "Password123",
+      "role": "ADMIN"
+    }
+    ```
+
+### B. Standard Registration Flow
+For all other roles (Student, Parent, Security Guard, Staff, HOD):
+
+1. Go to the **Register** page on the UI (`/register`).
+2. Fill out the details, check the consent tickbox, and choose your role.
+3. If registering as a **PARENT**, provide your student's email or ID in the input box.
+4. Submit the request.
+5. Log in with the Warden credentials created in Step A, go to **Pending Registrations**, and click **Approve** on the new request.
+6. The user can now log in using their credentials!
