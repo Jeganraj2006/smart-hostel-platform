@@ -11,7 +11,7 @@ export default function PendingLeaves() {
     const [overrideId, setOverrideId] = useState(null);
     const [overrideReason, setOverrideReason] = useState('');
 
-    const { data: leaves = [], isLoading } = useQuery({
+    const { data: leaves = [], isLoading, error } = useQuery({
         queryKey: ['pendingLeaves'],
         queryFn: () => leaveService.getPending().then(r => r.data),
         retry: false,
@@ -57,7 +57,19 @@ export default function PendingLeaves() {
             </div>
 
             {isLoading ? (
-                <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>Loading...</div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px' }}>
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-slate-800 mb-4"></div>
+                    <p style={{ color: '#64748b', fontSize: '14px' }}>Loading pending leaves...</p>
+                </div>
+            ) : error ? (
+                <div style={{
+                    background: '#fee2e2', borderRadius: '12px', border: '1px solid #fecaca',
+                    padding: '24px', textAlign: 'center', color: '#991b1b', maxWidth: '500px', margin: '40px auto'
+                }}>
+                    <span style={{ fontSize: '32px', marginBottom: '8px', display: 'block' }}>⚠️</span>
+                    <h3 style={{ fontSize: '16px', fontWeight: '700' }}>Failed to load pending leaves</h3>
+                    <p style={{ fontSize: '13px', marginTop: '4px' }}>{error.message || 'Please check your connection.'}</p>
+                </div>
             ) : leaves.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px', background: 'white', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
                     <div style={{ fontSize: '40px', marginBottom: '12px' }}>✅</div>

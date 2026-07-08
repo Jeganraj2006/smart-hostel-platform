@@ -48,7 +48,7 @@ export default function GateScanner() {
             (decodedText) => {
                 handleScan(decodedText);
             },
-            (err) => {
+            () => {
                 // Verbose scanning logs omitted for performance
             }
         );
@@ -62,6 +62,7 @@ export default function GateScanner() {
                 });
             }
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleManualSubmit = (e) => {

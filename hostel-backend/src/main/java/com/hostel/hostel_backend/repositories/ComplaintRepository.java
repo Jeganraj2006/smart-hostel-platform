@@ -9,5 +9,6 @@ import java.time.LocalDateTime;
 public interface ComplaintRepository extends MongoRepository<Complaint, String> {
     List<Complaint> findByStudentId(String studentId);
     List<Complaint> findByStatus(String status);
+    List<Complaint> findByRaisedAtAfter(LocalDateTime raisedAtAfter);
     long countByAssetIdAndCategoryAndRaisedAtAfter(String assetId, String category, LocalDateTime raisedAtAfter);
 }

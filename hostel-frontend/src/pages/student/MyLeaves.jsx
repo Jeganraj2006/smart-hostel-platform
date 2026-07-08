@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import DashboardLayout from '../../components/layout/DashboardLayout';
@@ -15,7 +15,6 @@ const statusStyle = (status) => {
 };
 
 export default function MyLeaves() {
-    const queryClient = useQueryClient();
     const [filter, setFilter] = useState('ALL');
 
     const { data: leaves = [], isLoading } = useQuery({

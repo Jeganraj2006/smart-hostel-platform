@@ -9,7 +9,7 @@ export default function PendingRegistrations() {
     const [rejectId, setRejectId] = useState(null);
     const [rejectReason, setRejectReason] = useState('');
 
-    const { data: users = [], isLoading } = useQuery({
+    const { data: users = [], isLoading, error } = useQuery({
         queryKey: ['pendingRegistrations'],
         queryFn: () => registrationService.getPending().then(r => r.data),
         retry: false,
@@ -46,7 +46,19 @@ export default function PendingRegistrations() {
             </div>
 
             {isLoading ? (
-                <p style={{ textAlign: 'center', color: '#94a3b8', padding: '60px' }}>Loading...</p>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px' }}>
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-slate-800 mb-4"></div>
+                    <p style={{ color: '#64748b', fontSize: '14px' }}>Loading registrations...</p>
+                </div>
+            ) : error ? (
+                <div style={{
+                    background: '#fee2e2', borderRadius: '12px', border: '1px solid #fecaca',
+                    padding: '24px', textAlign: 'center', color: '#991b1b', maxWidth: '500px', margin: '40px auto'
+                }}>
+                    <span style={{ fontSize: '32px', marginBottom: '8px', display: 'block' }}>⚠️</span>
+                    <h3 style={{ fontSize: '16px', fontWeight: '700' }}>Failed to load pending registrations</h3>
+                    <p style={{ fontSize: '13px', marginTop: '4px' }}>{error.message || 'Please check your connection.'}</p>
+                </div>
             ) : users.length === 0 ? (
                 <div style={{
                     background: 'white', borderRadius: '12px', border: '1px solid #f1f5f9',
@@ -81,6 +93,11 @@ export default function PendingRegistrations() {
                                     <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
                                         Requested: {new Date(user.createdAt).toLocaleDateString()}
                                     </p>
+                                    {user.role === 'PARENT' && (
+                                        <div style={{ fontSize: '12px', color: '#475569', fontWeight: '600', marginTop: '6px', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '6px', padding: '6px 10px', display: 'inline-block' }}>
+                                            🔗 Claimed Linkage: <span style={{ color: '#0f172a' }}>{user.childEmailOrId}</span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '8px' }}>

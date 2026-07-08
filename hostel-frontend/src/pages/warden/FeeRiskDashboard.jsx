@@ -36,7 +36,7 @@ function Pill({ label, value, color }) {
 }
 
 export default function FeeRiskDashboard() {
-    const { data: students = [], isLoading } = useQuery({
+    const { data: students = [], isLoading, error } = useQuery({
         queryKey: ['feeRisk'],
         queryFn: () => feeService.getRiskReport().then(r => r.data),
         retry: false,
@@ -73,9 +73,18 @@ export default function FeeRiskDashboard() {
 
             {/* Student list */}
             {isLoading ? (
-                <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>
-                    <div style={{ fontSize: '32px', marginBottom: '10px' }}>⏳</div>
-                    Analysing fee records…
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px' }}>
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-slate-800 mb-4"></div>
+                    <p style={{ color: '#64748b', fontSize: '14px' }}>Analyzing fee records...</p>
+                </div>
+            ) : error ? (
+                <div style={{
+                    background: '#fee2e2', borderRadius: '12px', border: '1px solid #fecaca',
+                    padding: '24px', textAlign: 'center', color: '#991b1b', maxWidth: '500px', margin: '40px auto'
+                }}>
+                    <span style={{ fontSize: '32px', marginBottom: '8px', display: 'block' }}>⚠️</span>
+                    <h3 style={{ fontSize: '16px', fontWeight: '700' }}>Failed to analyze fee risks</h3>
+                    <p style={{ fontSize: '13px', marginTop: '4px' }}>{error.message || 'Please check your connection.'}</p>
                 </div>
             ) : students.length === 0 ? (
                 <div style={{

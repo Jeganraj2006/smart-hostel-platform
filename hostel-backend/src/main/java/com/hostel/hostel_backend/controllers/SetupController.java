@@ -25,6 +25,10 @@ public class SetupController {
     // Creates ACTIVE accounts without warden approval
     @PostMapping("/create-user")
     public ResponseEntity<?> createUser(@RequestBody Map<String, String> body) {
+        if (userRepository.count() > 0) {
+            throw new BadRequestException("Setup is already completed. New users must register through the standard flow.");
+        }
+
         String email = body.get("email");
 
         if (userRepository.existsByEmail(email)) {

@@ -40,13 +40,41 @@ public class AuthService {
             throw new BadRequestException("Password must be at least 8 characters long and contain both letters and numbers.");
         }
 
+        // India's Digital Personal Data Protection (DPDP) Act 2023 compliance:
+        // Section 6 mandates that personal data must be processed only for a specified purpose 
+        // for which the Data Principal has given, or is deemed to have given, their consent.
+        // Thus, we enforce explicit consent collection and log the timestamp.
+        if (request.getConsentGiven() == null || !request.getConsentGiven()) {
+            throw new BadRequestException("Explicit consent to collect and process personal data is required under the DPDP Act 2023.");
+        }
+
         User user = new User();
+        user.setConsentGivenAt(java.time.LocalDateTime.now());
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
         user.setRole(role);
         user.setPassword(passwordEncoder.encode(password));
         user.setAccountStatus("PENDING"); // Needs warden approval
+
+        if ("PARENT".equals(role)) {
+            String claim = request.getChildEmailOrId();
+            if (claim == null || claim.trim().isEmpty()) {
+                throw new BadRequestException("Child's email or student ID is required for PARENT registration");
+            }
+            user.setChildEmailOrId(claim.trim());
+            
+            // Try resolving the student ID/Email to a real user
+            java.util.Optional<User> studentOpt = userRepository.findById(claim.trim());
+            if (studentOpt.isEmpty()) {
+                studentOpt = userRepository.findByEmail(claim.trim());
+            }
+            if (studentOpt.isPresent() && "STUDENT".equals(studentOpt.get().getRole())) {
+                user.setLinkedStudentId(studentOpt.get().getId());
+            } else {
+                user.setLinkedStudentId(claim.trim());
+            }
+        }
 
         userRepository.save(user);
         return "Registration request sent. Awaiting warden approval.";

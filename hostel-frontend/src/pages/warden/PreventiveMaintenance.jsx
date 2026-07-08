@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { complaintService } from '../../services/complaintService';
 import toast from 'react-hot-toast';
 import { 
@@ -20,13 +20,16 @@ const categoryColors = {
 export default function PreventiveMaintenance() {
   const [flags, setFlags] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const fetchFlags = async () => {
+  const fetchFlags = async (showLoading = false) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
+      setError(null);
       const res = await complaintService.getPreventiveFlags();
       setFlags(res.data);
     } catch (err) {
+      setError(err);
       toast.error('Failed to load preventive maintenance flags');
     } finally {
       setLoading(false);
@@ -34,15 +37,16 @@ export default function PreventiveMaintenance() {
   };
 
   useEffect(() => {
-    fetchFlags();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchFlags(false);
   }, []);
 
   const handleResolve = async (id) => {
     try {
       await complaintService.resolvePreventiveFlag(id);
       toast.success('Maintenance scheduled! Flag acknowledged.');
-      fetchFlags();
-    } catch (err) {
+      fetchFlags(true);
+    } catch {
       toast.error('Failed to update flag');
     }
   };
@@ -59,9 +63,16 @@ export default function PreventiveMaintenance() {
         </p>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+      {error ? (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-center max-w-xl mx-auto my-10 text-red-400">
+            <span className="text-4xl mb-4 block">⚠️</span>
+            <h3 className="text-lg font-bold mb-2">Failed to Load Maintenance Flags</h3>
+            <p className="text-sm">{error.message || 'Please check your connection.'}</p>
+        </div>
+      ) : loading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-400 mb-4"></div>
+          <p className="text-slate-400 text-sm">Loading maintenance flags...</p>
         </div>
       ) : flags.length === 0 ? (
         <div className="text-center py-16 bg-slate-900/40 backdrop-blur-md rounded-2xl border border-slate-800">

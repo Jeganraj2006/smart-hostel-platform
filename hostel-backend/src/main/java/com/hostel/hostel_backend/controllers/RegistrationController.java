@@ -2,8 +2,10 @@ package com.hostel.hostel_backend.controllers;
 
 import com.hostel.hostel_backend.models.User;
 import com.hostel.hostel_backend.repositories.UserRepository;
+import com.hostel.hostel_backend.exceptions.BadRequestException;
 import com.hostel.hostel_backend.exceptions.ResourceNotFoundException;
 import com.hostel.hostel_backend.services.AuditService;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,6 +48,27 @@ public class RegistrationController {
     public ResponseEntity<?> approve(@PathVariable String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
+        // Linkage validation for PARENT role approval
+        if ("PARENT".equals(user.getRole())) {
+            String claim = user.getChildEmailOrId();
+            if (claim == null || claim.trim().isEmpty()) {
+                throw new BadRequestException("Parent must have a claimed child's email or student ID");
+            }
+            Optional<User> studentOpt = userRepository.findById(claim.trim());
+            if (studentOpt.isEmpty()) {
+                studentOpt = userRepository.findByEmail(claim.trim());
+            }
+            if (studentOpt.isEmpty() || !"STUDENT".equals(studentOpt.get().getRole())) {
+                throw new BadRequestException("Linked student not found in the system.");
+            }
+            User student = studentOpt.get();
+            if (!"ACTIVE".equals(student.getAccountStatus())) {
+                throw new BadRequestException("Linked student's registration is not active yet.");
+            }
+            user.setLinkedStudentId(student.getId()); // Confirm and set verified ID
+        }
+
         user.setAccountStatus("ACTIVE");
         user.setApprovedAt(LocalDateTime.now());
         userRepository.save(user);

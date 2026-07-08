@@ -5,6 +5,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 
 import HodDashboard from './pages/hod/HodDashboard';
 import ParentDashboard from './pages/parent/ParentDashboard';
+import TrustTimeline from './pages/parent/TrustTimeline';
 import StaffDashboard from './pages/staff/StaffDashboard';
 
 import Login from './pages/auth/Login';
@@ -27,6 +28,7 @@ import EmergencyBroadcast from './pages/warden/EmergencyBroadcast';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import RoomAllocation from './pages/admin/RoomAllocation';
+import Analytics from './pages/admin/Analytics';
 
 import SecurityDashboard from './pages/security/SecurityDashboard';
 import GateScanner from './pages/security/GateScanner';
@@ -115,6 +117,11 @@ export default function App() {
                             <RoomAllocation />
                         </ProtectedRoute>
                     } />
+                    <Route path="/admin/analytics" element={
+                        <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HOD']}>
+                            <Analytics />
+                        </ProtectedRoute>
+                    } />
 
                     <Route path="/hod" element={
                         <ProtectedRoute allowedRoles={['HOD']}>
@@ -125,6 +132,11 @@ export default function App() {
                     <Route path="/parent" element={
                         <ProtectedRoute allowedRoles={['PARENT']}>
                             <ParentDashboard />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/parent/timeline" element={
+                        <ProtectedRoute allowedRoles={['PARENT']}>
+                            <TrustTimeline />
                         </ProtectedRoute>
                     } />
 

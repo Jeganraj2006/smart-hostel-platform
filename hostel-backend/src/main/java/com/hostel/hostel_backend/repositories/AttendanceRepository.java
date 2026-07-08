@@ -13,4 +13,5 @@ public interface AttendanceRepository extends MongoRepository<Attendance, String
     Optional<Attendance> findByLeaveId(String leaveId);
     List<Attendance> findByStatusAndExpectedReturnAtBefore(String status, LocalDateTime expectedReturnAt);
     List<Attendance> findByExitScannedAtAfterAndStatusIn(LocalDateTime startOfDay, List<String> statuses);
+    List<Attendance> findByStudentId(String studentId);
 }

@@ -31,6 +31,9 @@ public class LeaveService {
     @Autowired
     private QrCodeService qrCodeService;
 
+    @Autowired
+    private NotificationService notificationService;
+
     // Get current logged-in user
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext()
@@ -133,6 +136,14 @@ public class LeaveService {
         leave.setUpdatedAt(LocalDateTime.now());
         Leave savedLeave = leaveRepository.save(leave);
 
+        if ("APPROVED".equals(savedLeave.getStatus())) {
+            notificationService.sendAlert(
+                savedLeave.getStudentEmail(),
+                String.format("Dear %s,\n\nYour leave application (ID: %s) from %s to %s has been APPROVED.\n\nBest regards,\nHostel Management System",
+                    savedLeave.getStudentName(), savedLeave.getId(), savedLeave.getFromDate(), savedLeave.getToDate())
+            );
+        }
+
         // Audit Logging
         Map<String, String> metadata = new HashMap<>();
         metadata.put("level", String.valueOf(level));
@@ -158,6 +169,12 @@ public class LeaveService {
         leave.setRejectionReason(reason);
         leave.setUpdatedAt(LocalDateTime.now());
         Leave savedLeave = leaveRepository.save(leave);
+
+        notificationService.sendAlert(
+            savedLeave.getStudentEmail(),
+            String.format("Dear %s,\n\nYour leave application (ID: %s) from %s to %s has been REJECTED.\nReason: %s\n\nBest regards,\nHostel Management System",
+                savedLeave.getStudentName(), savedLeave.getId(), savedLeave.getFromDate(), savedLeave.getToDate(), reason)
+        );
 
         // Audit Logging
         User approver = getCurrentUser();
@@ -200,6 +217,12 @@ public class LeaveService {
 
         Leave savedLeave = leaveRepository.save(leave);
 
+        notificationService.sendAlert(
+            savedLeave.getStudentEmail(),
+            String.format("Dear %s,\n\nYour leave application (ID: %s) from %s to %s has been APPROVED via emergency override by warden %s.\nReason: %s\n\nBest regards,\nHostel Management System",
+                savedLeave.getStudentName(), savedLeave.getId(), savedLeave.getFromDate(), savedLeave.getToDate(), warden.getName(), reason)
+        );
+
         // Audit Logging
         Map<String, String> metadata = new HashMap<>();
         metadata.put("reason", reason);
@@ -217,11 +240,15 @@ public class LeaveService {
 
     // Send reminder
     public void sendReminder(String leaveId) {
+        User current = getCurrentUser();
         Leave leave = leaveRepository.findById(leaveId)
                 .orElseThrow(() -> new ResourceNotFoundException("Leave not found"));
 
+        if (!current.getId().equals(leave.getStudentId())) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied: You do not own this leave request.");
+        }
+
         leave.setReminderCount(leave.getReminderCount() + 1);
         leaveRepository.save(leave);
-        // TODO: Send notification to current approver
     }
 }

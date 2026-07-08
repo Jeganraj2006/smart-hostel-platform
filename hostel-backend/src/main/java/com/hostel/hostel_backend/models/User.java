@@ -31,4 +31,12 @@ public class User {
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime approvedAt;
     private RoommatePreferences roommatePreferences;
+
+    // Parent Linkage (Sprint 30)
+    private String linkedStudentId;  // Stores verified student user ID
+    private String childEmailOrId;   // Claimed student email/ID during registration
+
+    // India's Digital Personal Data Protection (DPDP) Act 2023 compliance:
+    // Consent-based data collection. Stores timestamp when user clicked consent checkbox.
+    private LocalDateTime consentGivenAt;
 }

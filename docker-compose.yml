@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: hostel-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis:alpine
+    container_name: hostel-redis
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./hostel-backend
+      dockerfile: Dockerfile
+    container_name: hostel-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/hostel_db
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your_super_secret_jwt_key_that_is_long_enough_for_hmac_sha256
+      - MAIL_USERNAME=resend
+      - MAIL_PASSWORD=your_resend_smtp_api_key_or_password
+      - CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+      - CLOUDINARY_API_KEY=your_cloudinary_api_key
+      - CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+  frontend:
+    build:
+      context: ./hostel-frontend
+      dockerfile: Dockerfile
+    container_name: hostel-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:

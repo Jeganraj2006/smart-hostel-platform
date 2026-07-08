@@ -2,6 +2,7 @@ package com.hostel.hostel_backend.controllers;
 
 import com.hostel.hostel_backend.models.RoommatePreferences;
 import com.hostel.hostel_backend.models.User;
+import com.hostel.hostel_backend.repositories.RoomRepository;
 import com.hostel.hostel_backend.repositories.UserRepository;
 import com.hostel.hostel_backend.exceptions.BadRequestException;
 import com.hostel.hostel_backend.exceptions.ResourceNotFoundException;
@@ -20,6 +21,9 @@ public class StudentController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RoomRepository roomRepository;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext()
@@ -84,5 +88,45 @@ public class StudentController {
         userRepository.save(user);
 
         return ResponseEntity.ok(Map.of("message", "Roommate preferences submitted successfully"));
+    }
+
+    @DeleteMapping("/{id}/data")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    public ResponseEntity<?> anonymizeStudentData(@PathVariable String id) {
+        User actor = getCurrentUser();
+        String actorRole = actor.getRole();
+        if (!"SUPER_ADMIN".equals(actorRole) && !"ADMIN".equals(actorRole)) {
+            return ResponseEntity.status(403).body(Map.of("error", "Access denied: Only SUPER_ADMIN or ADMIN can anonymize student data."));
+        }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + id));
+
+        if (!"STUDENT".equals(user.getRole())) {
+            throw new BadRequestException("Only STUDENT role accounts can be anonymized.");
+        }
+
+        // Anonymize PII details to comply with India's DPDP Act 2023 compliance while maintaining audit history keys
+        user.setName("Anonymized Student");
+        user.setPhone("0000000000");
+        user.setEmail("anonymized_" + id + "@hostel.internal");
+        user.setPassword("ANONYMIZED_" + java.util.UUID.randomUUID().toString());
+        user.setRoommatePreferences(null);
+        user.setChildEmailOrId(null);
+        user.setActive(false);
+        user.setAccountStatus("ANONYMIZED");
+
+        userRepository.save(user);
+
+        // Remove from roommate allocations if checked into any room
+        roomRepository.findByOccupantIdsContaining(id).ifPresent(room -> {
+            room.getOccupantIds().remove(id);
+            if (room.getOccupantIds().isEmpty()) {
+                room.setStatus("AVAILABLE");
+            }
+            roomRepository.save(room);
+        });
+
+        return ResponseEntity.ok(Map.of("message", "Student data successfully anonymized to preserve audit integrity under DPDP Act 2023 compliance."));
     }
 }

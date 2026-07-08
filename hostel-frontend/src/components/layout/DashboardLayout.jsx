@@ -15,7 +15,6 @@ const navItems = {
         { label: '📋 Pending Leaves', path: '/warden/leaves' },
         { label: '👤 Registrations', path: '/warden/registrations' },
         { label: '🏨 Room Map', path: '/warden/rooms' },
-        { label: '📊 Analytics', path: '/warden/analytics' },
         { label: '🔧 Allocations', path: '/admin/allocations' },
         { label: '💰 Fee Risk', path: '/warden/fee-risk' },
         { label: '🛠️ Maintenance', path: '/warden/preventive-maintenance' },
@@ -25,6 +24,7 @@ const navItems = {
     HOD: [
         { label: '🏠 Dashboard', path: '/hod' },
         { label: '📋 Pending Leaves', path: '/hod/leaves' },
+        { label: '📊 Analytics', path: '/admin/analytics' },
     ],
     STAFF: [
         { label: '🏠 Dashboard', path: '/staff' },
@@ -34,6 +34,7 @@ const navItems = {
     PARENT: [
         { label: '🏠 Dashboard', path: '/parent' },
         { label: '📋 Leave Approvals', path: '/parent/leaves' },
+        { label: '📜 Student Timeline', path: '/parent/timeline' },
     ],
     SUPER_ADMIN: [
         { label: '🏠 Dashboard', path: '/admin' },
@@ -45,6 +46,7 @@ const navItems = {
         { label: '🛠️ Maintenance', path: '/warden/preventive-maintenance' },
         { label: '📷 Visitor Log', path: '/warden/visitors' },
         { label: '🚨 Emergency', path: '/warden/broadcast' },
+        { label: '📊 Analytics', path: '/admin/analytics' },
     ],
     SECURITY_GUARD: [
         { label: '🏠 Dashboard', path: '/security' },

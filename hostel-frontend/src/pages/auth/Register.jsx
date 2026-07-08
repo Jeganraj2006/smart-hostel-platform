@@ -9,7 +9,8 @@ const roles = ['STUDENT', 'WARDEN', 'HOD', 'STAFF', 'PARENT', 'SECURITY_GUARD'];
 export default function Register() {
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
-    const { register, handleSubmit, formState: { errors } } = useForm();
+    const { register, handleSubmit, watch, formState: { errors } } = useForm();
+    const selectedRole = watch('role');
 
     const onSubmit = async (data) => {
         setLoading(true);
@@ -136,6 +137,26 @@ export default function Register() {
                         )}
                     </div>
 
+                    {selectedRole === 'PARENT' && (
+                        <div style={{ marginBottom: '14px' }}>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                                Child's Email or Student ID *
+                            </label>
+                            <input
+                                type="text"
+                                {...register('childEmailOrId', { required: "Child's email or student ID is required for PARENT registration" })}
+                                placeholder="Child's email address or ID"
+                                style={inputStyle}
+                            />
+                            {errors.childEmailOrId && (
+                                <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                    {errors.childEmailOrId.message}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+
                     <div style={{ marginBottom: '24px' }}>
                         <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
                             Password
@@ -152,6 +173,23 @@ export default function Register() {
                             </p>
                         )}
                     </div>
+
+                    <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                        <input
+                            type="checkbox"
+                            id="consentGiven"
+                            {...register('consentGiven', { required: 'You must consent to data processing under DPDP Act 2023' })}
+                            style={{ marginTop: '3px' }}
+                        />
+                        <label htmlFor="consentGiven" style={{ fontSize: '12px', color: '#4b5563', lineHeight: '1.4' }}>
+                            I consent to the collection and processing of my personal data for the purpose of hostel management and onboarding as per India's Digital Personal Data Protection (DPDP) Act 2023.
+                        </label>
+                    </div>
+                    {errors.consentGiven && (
+                        <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '-14px', marginBottom: '14px' }}>
+                            {errors.consentGiven.message}
+                        </p>
+                    )}
 
                     <button
                         type="submit"

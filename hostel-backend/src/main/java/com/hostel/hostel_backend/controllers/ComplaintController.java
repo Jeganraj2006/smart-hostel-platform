@@ -99,6 +99,7 @@ public class ComplaintController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('WARDEN', 'SUPER_ADMIN', 'STAFF')")
     public ResponseEntity<?> getAll() {
         return ResponseEntity.ok(complaintRepository.findAll());
     }
@@ -108,13 +109,18 @@ public class ComplaintController {
                                           @RequestBody Map<String, String> body) {
         Complaint c = complaintRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Complaint not found with id: " + id));
+
+        User actor = getCurrentUser();
+        if (!"WARDEN".equals(actor.getRole()) && !"SUPER_ADMIN".equals(actor.getRole()) && !"STAFF".equals(actor.getRole()) && !actor.getId().equals(c.getStudentId())) {
+            return ResponseEntity.status(403).body(Map.of("error", "Access denied: unauthorized status modification."));
+        }
+
         c.setStatus(body.get("status"));
         if (body.get("status").equals("RESOLVED"))
             c.setResolvedAt(LocalDateTime.now());
         Complaint saved = complaintRepository.save(c);
 
         // Audit Logging
-        User actor = getCurrentUser();
         Map<String, String> metadata = new HashMap<>();
         metadata.put("status", body.get("status"));
         auditService.log(
@@ -134,6 +140,12 @@ public class ComplaintController {
                                   @RequestBody Map<String, Integer> body) {
         Complaint c = complaintRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Complaint not found with id: " + id));
+
+        User actor = getCurrentUser();
+        if (!actor.getId().equals(c.getStudentId())) {
+            return ResponseEntity.status(403).body(Map.of("error", "Access denied: you can only rate your own complaints."));
+        }
+
         c.setRating(body.get("rating"));
         return ResponseEntity.ok(complaintRepository.save(c));
     }

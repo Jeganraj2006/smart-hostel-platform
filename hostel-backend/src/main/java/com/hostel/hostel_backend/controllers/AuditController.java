@@ -20,6 +20,7 @@ public class AuditController {
     private AuditLogRepository auditLogRepository;
 
     @GetMapping
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
     public ResponseEntity<List<AuditLog>> getAuditLogs() {
         return ResponseEntity.ok(auditLogRepository.findFirst100ByOrderByTimestampDesc());
     }

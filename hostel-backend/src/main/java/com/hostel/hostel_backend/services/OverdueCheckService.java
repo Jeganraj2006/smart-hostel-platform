@@ -3,9 +3,11 @@ package com.hostel.hostel_backend.services;
 import com.hostel.hostel_backend.models.Attendance;
 import com.hostel.hostel_backend.models.Room;
 import com.hostel.hostel_backend.models.User;
+import com.hostel.hostel_backend.models.Fee;
 import com.hostel.hostel_backend.repositories.AttendanceRepository;
 import com.hostel.hostel_backend.repositories.RoomRepository;
 import com.hostel.hostel_backend.repositories.UserRepository;
+import com.hostel.hostel_backend.repositories.FeeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -35,6 +37,9 @@ public class OverdueCheckService {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private FeeRepository feeRepository;
 
     /**
      * Checks for overdue student out-passes every 15 minutes.
@@ -102,5 +107,33 @@ public class OverdueCheckService {
         }
 
         log.info("Completed scheduled background check for overdue gatepasses.");
+    }
+
+    /**
+     * Checks for overdue student fees once a day.
+     * Marks them OVERDUE and sends alert emails to the students.
+     */
+    @Scheduled(cron = "0 0 1 * * *")
+    public void checkOverdueFees() {
+        log.info("Starting scheduled background check for overdue fees...");
+        String today = java.time.LocalDate.now().toString();
+        List<Fee> pendingFees = feeRepository.findByStatus("PENDING");
+
+        for (Fee fee : pendingFees) {
+            if (fee.getDueDate() != null && fee.getDueDate().compareTo(today) < 0) {
+                fee.setStatus("OVERDUE");
+                feeRepository.save(fee);
+
+                // Fetch student and send alert
+                userRepository.findById(fee.getStudentId()).ifPresent(student -> {
+                    String alertMsg = String.format(
+                        "Dear %s,\n\nYour %s fee of INR %.2f was due on %s and is now OVERDUE. Please clear your dues as soon as possible to avoid penalties.\n\nBest regards,\nHostel Management System",
+                        student.getName(), fee.getFeeType(), fee.getAmount(), fee.getDueDate()
+                    );
+                    notificationService.sendAlert(student.getEmail(), alertMsg);
+                });
+            }
+        }
+        log.info("Completed scheduled background check for overdue fees.");
     }
 }

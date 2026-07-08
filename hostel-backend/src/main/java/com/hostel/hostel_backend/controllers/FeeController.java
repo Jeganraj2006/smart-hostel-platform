@@ -56,11 +56,13 @@ public class FeeController {
     }
 
     @GetMapping
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('WARDEN', 'SUPER_ADMIN')")
     public ResponseEntity<?> getAll() {
         return ResponseEntity.ok(feeRepository.findAll());
     }
 
     @PutMapping("/{id}/status")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('WARDEN', 'SUPER_ADMIN')")
     public ResponseEntity<?> updateStatus(@PathVariable String id,
                                           @RequestBody Map<String, String> body) {
         Fee fee = feeRepository.findById(id)

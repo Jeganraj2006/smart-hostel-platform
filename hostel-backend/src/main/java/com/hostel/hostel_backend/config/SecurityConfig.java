@@ -42,9 +42,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/leaves/pending").hasRole("WARDEN")
                         .requestMatchers("/api/leaves/*/approve").hasRole("WARDEN")
                         .requestMatchers("/api/leaves/*/reject").hasRole("WARDEN")
-                        .requestMatchers("/api/analytics/**").hasAnyRole("ADMIN", "HOD")
+                        .requestMatchers("/api/analytics/**").hasAnyRole("ADMIN", "SUPER_ADMIN", "HOD")
                         .requestMatchers("/api/gate/**").hasAnyRole("SECURITY_GUARD", "WARDEN")
-                        .requestMatchers("/api/audit/**").hasRole("ADMIN")
+                        .requestMatchers("/api/audit/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/api/parent/**").hasRole("PARENT")
+                        .requestMatchers("/api/resources/**").hasAnyRole("WARDEN", "STAFF", "ADMIN", "SUPER_ADMIN", "HOD")
                         
                         // ✅ Default fallback rule
                         .anyRequest().authenticated()
