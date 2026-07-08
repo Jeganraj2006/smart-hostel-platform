@@ -21,6 +21,7 @@ import MyFees from './pages/student/MyFees';
 
 import WardenDashboard from './pages/warden/WardenDashboard';
 import PendingLeaves from './pages/warden/PendingLeaves';
+import PendingRegistrations from './pages/warden/PendingRegistrations';
 import PreventiveMaintenance from './pages/warden/PreventiveMaintenance';
 import FeeRiskDashboard from './pages/warden/FeeRiskDashboard';
 import VisitorLog from './pages/warden/VisitorLog';
@@ -35,6 +36,9 @@ import GateScanner from './pages/security/GateScanner';
 
 const queryClient = new QueryClient();
 
+const ADMIN_ROLES = ['SUPER_ADMIN', 'ADMIN'];
+const WARDEN_ADMIN = ['WARDEN', 'SUPER_ADMIN', 'ADMIN'];
+
 export default function App() {
     return (
         <QueryClientProvider client={queryClient}>
@@ -45,6 +49,7 @@ export default function App() {
                     <Route path="/register" element={<Register />} />
                     <Route path="/unauthorized" element={<Unauthorized />} />
 
+                    {/* ── Student ── */}
                     <Route path="/student" element={
                         <ProtectedRoute allowedRoles={['STUDENT']}>
                             <StudentDashboard />
@@ -76,59 +81,81 @@ export default function App() {
                         </ProtectedRoute>
                     } />
 
+                    {/* ── Warden ── */}
                     <Route path="/warden" element={
                         <ProtectedRoute allowedRoles={['WARDEN']}>
                             <WardenDashboard />
                         </ProtectedRoute>
                     } />
                     <Route path="/warden/leaves" element={
-                        <ProtectedRoute allowedRoles={['WARDEN']}>
+                        <ProtectedRoute allowedRoles={['WARDEN', 'HOD', ...ADMIN_ROLES]}>
                             <PendingLeaves />
                         </ProtectedRoute>
                     } />
+                    {/* Registrations — warden approves new sign-ups */}
+                    <Route path="/warden/registrations" element={
+                        <ProtectedRoute allowedRoles={WARDEN_ADMIN}>
+                            <PendingRegistrations />
+                        </ProtectedRoute>
+                    } />
+                    {/* Room map — placeholder, re-uses RoomAllocation page */}
+                    <Route path="/warden/rooms" element={
+                        <ProtectedRoute allowedRoles={WARDEN_ADMIN}>
+                            <RoomAllocation />
+                        </ProtectedRoute>
+                    } />
                     <Route path="/warden/preventive-maintenance" element={
-                        <ProtectedRoute allowedRoles={['WARDEN', 'SUPER_ADMIN']}>
+                        <ProtectedRoute allowedRoles={[...WARDEN_ADMIN, 'HOD']}>
                             <PreventiveMaintenance />
                         </ProtectedRoute>
                     } />
                     <Route path="/warden/fee-risk" element={
-                        <ProtectedRoute allowedRoles={['WARDEN', 'SUPER_ADMIN']}>
+                        <ProtectedRoute allowedRoles={[...WARDEN_ADMIN, 'HOD']}>
                             <FeeRiskDashboard />
                         </ProtectedRoute>
                     } />
                     <Route path="/warden/visitors" element={
-                        <ProtectedRoute allowedRoles={['WARDEN', 'SECURITY_GUARD', 'SUPER_ADMIN']}>
+                        <ProtectedRoute allowedRoles={[...WARDEN_ADMIN, 'SECURITY_GUARD']}>
                             <VisitorLog />
                         </ProtectedRoute>
                     } />
                     <Route path="/warden/broadcast" element={
-                        <ProtectedRoute allowedRoles={['WARDEN', 'SUPER_ADMIN']}>
+                        <ProtectedRoute allowedRoles={WARDEN_ADMIN}>
                             <EmergencyBroadcast />
                         </ProtectedRoute>
                     } />
 
+                    {/* ── Admin ── */}
                     <Route path="/admin" element={
-                        <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                        <ProtectedRoute allowedRoles={ADMIN_ROLES}>
                             <AdminDashboard />
                         </ProtectedRoute>
                     } />
                     <Route path="/admin/allocations" element={
-                        <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'WARDEN']}>
+                        <ProtectedRoute allowedRoles={WARDEN_ADMIN}>
                             <RoomAllocation />
                         </ProtectedRoute>
                     } />
                     <Route path="/admin/analytics" element={
-                        <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HOD']}>
+                        <ProtectedRoute allowedRoles={[...ADMIN_ROLES, 'HOD']}>
                             <Analytics />
                         </ProtectedRoute>
                     } />
 
+                    {/* ── HOD ── */}
                     <Route path="/hod" element={
                         <ProtectedRoute allowedRoles={['HOD']}>
                             <HodDashboard />
                         </ProtectedRoute>
                     } />
+                    {/* HOD also reviews leaves */}
+                    <Route path="/hod/leaves" element={
+                        <ProtectedRoute allowedRoles={['HOD', ...ADMIN_ROLES]}>
+                            <PendingLeaves />
+                        </ProtectedRoute>
+                    } />
 
+                    {/* ── Parent ── */}
                     <Route path="/parent" element={
                         <ProtectedRoute allowedRoles={['PARENT']}>
                             <ParentDashboard />
@@ -139,13 +166,32 @@ export default function App() {
                             <TrustTimeline />
                         </ProtectedRoute>
                     } />
+                    {/* Parent leave approvals — shows ward's leave history */}
+                    <Route path="/parent/leaves" element={
+                        <ProtectedRoute allowedRoles={['PARENT']}>
+                            <MyLeaves />
+                        </ProtectedRoute>
+                    } />
 
+                    {/* ── Staff ── */}
                     <Route path="/staff" element={
                         <ProtectedRoute allowedRoles={['STAFF']}>
                             <StaffDashboard />
                         </ProtectedRoute>
                     } />
+                    {/* Staff sub-pages — map to StaffDashboard until dedicated pages are built */}
+                    <Route path="/staff/attendance" element={
+                        <ProtectedRoute allowedRoles={['STAFF']}>
+                            <StaffDashboard />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/staff/complaints" element={
+                        <ProtectedRoute allowedRoles={['STAFF']}>
+                            <StaffDashboard />
+                        </ProtectedRoute>
+                    } />
 
+                    {/* ── Security ── */}
                     <Route path="/security" element={
                         <ProtectedRoute allowedRoles={['SECURITY_GUARD']}>
                             <SecurityDashboard />

@@ -48,6 +48,18 @@ const navItems = {
         { label: '🚨 Emergency', path: '/warden/broadcast' },
         { label: '📊 Analytics', path: '/admin/analytics' },
     ],
+    ADMIN: [
+        { label: '🏠 Dashboard', path: '/admin' },
+        { label: '👥 Role Manager', path: '/admin/roles' },
+        { label: '🔗 Chain Config', path: '/admin/chains' },
+        { label: '📜 Audit Logs', path: '/admin/audit' },
+        { label: '🔧 Allocations', path: '/admin/allocations' },
+        { label: '💰 Fee Risk', path: '/warden/fee-risk' },
+        { label: '🛠️ Maintenance', path: '/warden/preventive-maintenance' },
+        { label: '📷 Visitor Log', path: '/warden/visitors' },
+        { label: '🚨 Emergency', path: '/warden/broadcast' },
+        { label: '📊 Analytics', path: '/admin/analytics' },
+    ],
     SECURITY_GUARD: [
         { label: '🏠 Dashboard', path: '/security' },
         { label: '📷 Gate Scanner', path: '/security/scanner' },
@@ -75,6 +87,7 @@ export default function DashboardLayout({ children }) {
         STAFF: 'bg-amber-100 text-amber-700',
         PARENT: 'bg-pink-100 text-pink-700',
         SUPER_ADMIN: 'bg-red-100 text-red-700',
+        ADMIN: 'bg-red-100 text-red-700',
         SECURITY_GUARD: 'bg-teal-100 text-teal-700',
     };
 
