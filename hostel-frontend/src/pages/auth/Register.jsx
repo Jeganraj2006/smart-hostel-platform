@@ -19,7 +19,7 @@ export default function Register() {
             setSubmitted(true);
             toast.success('Registration request sent!');
         } catch (err) {
-            toast.error(err.response?.data || 'Registration failed');
+            toast.error(err.response?.data?.error || err.response?.data || 'Registration failed');
         } finally {
             setLoading(false);
         }

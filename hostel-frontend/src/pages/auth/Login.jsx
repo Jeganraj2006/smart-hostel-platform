@@ -31,7 +31,7 @@ export default function Login() {
       toast.success(`Welcome back, ${name}!`);
       navigate(roleDashboards[role] || '/student');
     } catch (err) {
-      toast.error(err.response?.data || 'Login failed. Check your credentials.');
+      toast.error(err.response?.data?.error || err.response?.data || 'Login failed. Check your credentials.');
     } finally {
       setLoading(false);
     }

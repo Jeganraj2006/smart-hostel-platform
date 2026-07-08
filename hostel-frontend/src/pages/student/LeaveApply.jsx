@@ -37,7 +37,7 @@ export default function LeaveApply() {
             toast.success('Leave request submitted successfully!');
             navigate('/student/leave/history');
         } catch (err) {
-            toast.error(err.response?.data || 'Failed to submit leave request');
+            toast.error(err.response?.data?.error || err.response?.data || 'Failed to submit leave request');
         } finally {
             setLoading(false);
         }
