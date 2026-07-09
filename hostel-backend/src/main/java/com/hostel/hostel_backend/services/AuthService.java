@@ -13,6 +13,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.RedisSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.concurrent.TimeUnit;
@@ -83,6 +85,7 @@ public class AuthService {
         userRepository.save(user);
         return "Registration request sent. Awaiting warden approval.";
     }
+
     // Login → only ACTIVE accounts
     public AuthResponse login(LoginRequest request) {
         String email = request.getEmail();
@@ -93,8 +96,10 @@ public class AuthService {
             }
         } catch (BadRequestException e) {
             throw e;
+        } catch (RedisConnectionFailureException | RedisSystemException e) {
+            log.warn("Redis unavailable — skipping lockout check for this login attempt");
         } catch (Exception e) {
-            log.warn("Redis unavailable, skipping lockout check");
+            log.warn("General error checking lockout: " + e.getMessage());
         }
 
         User user = userRepository.findByEmail(email)
@@ -126,8 +131,10 @@ public class AuthService {
         try {
             redisTemplate.delete("login:attempts:" + email);
             redisTemplate.delete(lockoutKey);
+        } catch (RedisConnectionFailureException | RedisSystemException e) {
+            log.warn("Redis unavailable — failed to reset login attempts");
         } catch (Exception e) {
-            log.warn("Redis unavailable, failed to reset login attempts");
+            log.warn("General error resetting attempts: " + e.getMessage());
         }
 
         String token = jwtTokenProvider.generateAccessToken(
@@ -168,8 +175,10 @@ public class AuthService {
             }
         } catch (BadRequestException e) {
             throw e;
+        } catch (RedisConnectionFailureException | RedisSystemException e) {
+            log.warn("Redis unavailable — failed to increment login attempts");
         } catch (Exception e) {
-            log.warn("Redis unavailable, failed to increment login attempts");
+            log.warn("General error incrementing failed attempts: " + e.getMessage());
         }
     }
 }
